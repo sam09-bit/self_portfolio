@@ -14,11 +14,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Devicon for language/tool icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.15.1/devicon.min.css">
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
       // Tailwind CSS configuration
       tailwind.config = {
-        darkMode: 'class',
+        darkMode: 'class', // Dark mode is now the default, but toggle is kept for consistency
         theme: {
           extend: {
             colors: {
@@ -50,8 +52,21 @@
       
       body {
         font-family: 'Poppins', sans-serif;
+        /* Set the base background to a dark color for the space theme */
+        background-color: #121212;
+        color: #e5e7eb; /* Light gray text for better readability */
       }
       
+      /* Canvas is now fixed to cover the whole viewport */
+      #bg-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1; /* Place it behind all content */
+      }
+
       .gradient-text {
         background: linear-gradient(90deg, #6366f1 0%, #ec4899 100%);
         -webkit-background-clip: text;
@@ -79,12 +94,8 @@
       
       .timeline-dot {
         z-index: 1;
-      }
-      
-      @media (max-width: 768px) {
-        .project-grid {
-          grid-template-columns: 1fr;
-        }
+        /* Adjust dot border to match new dark background */
+        border-color: #121212;
       }
       
       .nav-link {
@@ -113,14 +124,17 @@
                     linear-gradient(90deg, #6366f1, #ec4899) border-box;
       }
 
-      /* Project Card Hover Effect */
-      .project-card {
+      /* Glassmorphism effect for cards */
+      .project-card, .skill-icon-bg, .glass-card {
+        background: rgba(30, 30, 30, 0.4); /* Semi-transparent background */
+        backdrop-filter: blur(10px); /* Frosted glass effect */
+        border: 1px solid rgba(255, 255, 255, 0.1);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
       }
       
       .project-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+        box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.2);
       }
       
       /* Custom Scrollbar */
@@ -142,9 +156,12 @@
       }
     </style>
   </head>
-  <body class="bg-white dark:bg-dark-DEFAULT text-gray-800 dark:text-gray-200">
+  <body class="bg-dark-DEFAULT text-gray-200">
+    <!-- Canvas for 3D Background - Now outside main content flow -->
+    <canvas id="bg-canvas"></canvas>
+
     <!-- Header/Navigation -->
-    <header class="fixed w-full top-0 left-0 z-50 bg-white/80 dark:bg-dark-DEFAULT/80 backdrop-blur-md">
+    <header class="fixed w-full top-0 left-0 z-50 bg-dark-DEFAULT/60 backdrop-blur-md">
       <div class="container mx-auto px-4 py-4 flex justify-between items-center">
         <a href="#home" class="text-2xl font-bold gradient-text">Sameer Morya</a>
         
@@ -154,17 +171,15 @@
           <a href="#projects" class="nav-link font-medium hover:text-primary">Projects</a>
           <a href="#resume" class="nav-link font-medium hover:text-primary">Resume</a>
           <a href="#contact" class="nav-link font-medium hover:text-primary">Contact</a>
-          <button id="dark-mode-toggle" class="ml-4 p-2 rounded-full bg-gray-100 dark:bg-dark-light text-gray-800 dark:text-gray-200">
-            <i class="fas fa-moon dark:hidden"></i>
-            <i class="fas fa-sun hidden dark:block"></i>
+          <button id="dark-mode-toggle" class="ml-4 p-2 rounded-full bg-dark-light text-gray-200">
+            <i class="fas fa-moon"></i>
           </button>
         </nav>
         
         <!-- Mobile Menu Button -->
         <div class="md:hidden flex items-center">
-          <button id="dark-mode-toggle-mobile" class="mr-4 p-2 rounded-full bg-gray-100 dark:bg-dark-light text-gray-800 dark:text-gray-200">
-            <i class="fas fa-moon dark:hidden"></i>
-            <i class="fas fa-sun hidden dark:block"></i>
+          <button id="dark-mode-toggle-mobile" class="mr-4 p-2 rounded-full bg-dark-light text-gray-200">
+            <i class="fas fa-moon"></i>
           </button>
           <button id="mobile-menu-button" class="p-2">
             <i class="fas fa-bars text-2xl"></i>
@@ -173,7 +188,7 @@
       </div>
       
       <!-- Mobile Menu -->
-      <div id="mobile-menu" class="fixed top-0 left-0 w-full h-screen bg-white dark:bg-dark-DEFAULT z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
+      <div id="mobile-menu" class="fixed top-0 left-0 w-full h-screen bg-dark-DEFAULT z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
         <div class="p-5 flex justify-end">
           <button id="mobile-menu-close" class="p-2">
             <i class="fas fa-times text-2xl"></i>
@@ -189,13 +204,13 @@
     </header>
 
     <!-- Hero Section -->
-    <section id="home" class="min-h-screen flex items-center justify-center pt-24 px-4">
-      <div class="container mx-auto flex flex-col-reverse md:flex-row items-center justify-between gap-12">
+    <section id="home" class="relative min-h-screen flex items-center justify-center pt-24 px-4">
+      <div class="relative z-10 container mx-auto flex flex-col-reverse md:flex-row items-center justify-between gap-12">
         <div class="w-full md:w-1/2" data-aos="fade-right">
           <h1 class="text-4xl md:text-6xl font-bold mb-6">
             Hi, I'm <span class="gradient-text">Sameer Morya</span>
           </h1>
-          <h2 class="text-2xl md:text-3xl font-medium mb-6 text-gray-600 dark:text-gray-400">
+          <h2 class="text-2xl md:text-3xl font-medium mb-6 text-gray-400">
             Software Developer & MERN Stack Developer
           </h2>
           <p class="text-lg mb-8">
@@ -206,7 +221,7 @@
               <span>View Projects</span>
               <i class="fas fa-arrow-right ml-2"></i>
             </a>
-            <a href="#contact" class="px-8 py-3 border-2 border-primary text-primary dark:text-white hover:bg-primary hover:text-white rounded-full transition-colors font-medium">
+            <a href="#contact" class="px-8 py-3 border-2 border-primary text-primary hover:bg-primary hover:text-white rounded-full transition-colors font-medium">
               Contact Me
             </a>
           </div>
@@ -214,7 +229,6 @@
         <div class="w-full md:w-1/2 flex justify-center" data-aos="fade-left">
           <div class="relative">
             <div class="absolute inset-0 bg-gradient-to-br from-primary to-secondary rounded-full blur-2xl opacity-20"></div>
-            <!-- Photo updated here -->
             <img src="Linkedin pic.jpg" alt="Sameer Morya" class="w-64 h-64 md:w-80 md:h-80 rounded-full object-cover profile-image relative z-10">
           </div>
         </div>
@@ -222,14 +236,13 @@
     </section>
 
     <!-- About Me Section -->
-    <section id="about" class="py-20 px-4 bg-gray-50 dark:bg-dark-light">
+    <section id="about" class="py-20 px-4">
       <div class="container mx-auto">
         <h2 class="text-3xl md:text-4xl font-bold mb-16 text-center" data-aos="fade-up">
           About <span class="gradient-text">Me</span>
         </h2>
-        <div class="flex flex-col md:flex-row items-center gap-12">
+        <div class="flex flex-col md:flex-row items-center gap-12 glass-card p-8 rounded-xl">
           <div class="w-full md:w-1/3 flex justify-center" data-aos="fade-right">
-             <!-- Photo updated here -->
             <img src="Linkedin pic.jpg" alt="Sameer Morya" class="w-64 h-64 rounded-full object-cover profile-image">
           </div>
           <div class="w-full md:w-2/3" data-aos="fade-left">
@@ -239,63 +252,61 @@
             <h3 class="text-xl font-semibold mb-6">My Skills</h3>
             <div class="flex flex-wrap gap-6">
               <div class="skill-icon text-center" data-aos="zoom-in" data-aos-delay="100">
-                <div class="w-16 h-16 mx-auto bg-white dark:bg-dark-DEFAULT rounded-lg flex items-center justify-center shadow-md mb-2">
+                <div class="w-16 h-16 mx-auto rounded-lg flex items-center justify-center shadow-md mb-2 skill-icon-bg">
                   <i class="devicon-python-plain text-3xl text-blue-400"></i>
                 </div>
                 <span>Python</span>
               </div>
               <div class="skill-icon text-center" data-aos="zoom-in" data-aos-delay="200">
-                <div class="w-16 h-16 mx-auto bg-white dark:bg-dark-DEFAULT rounded-lg flex items-center justify-center shadow-md mb-2">
+                <div class="w-16 h-16 mx-auto rounded-lg flex items-center justify-center shadow-md mb-2 skill-icon-bg">
                   <i class="devicon-flutter-plain text-3xl text-cyan-400"></i>
                 </div>
                 <span>Flutter</span>
               </div>
               <div class="skill-icon text-center" data-aos="zoom-in" data-aos-delay="300">
-                <div class="w-16 h-16 mx-auto bg-white dark:bg-dark-DEFAULT rounded-lg flex items-center justify-center shadow-md mb-2">
+                <div class="w-16 h-16 mx-auto rounded-lg flex items-center justify-center shadow-md mb-2 skill-icon-bg">
                   <i class="devicon-javascript-plain text-3xl text-yellow-500"></i>
                 </div>
                 <span>JavaScript</span>
               </div>
               <div class="skill-icon text-center" data-aos="zoom-in" data-aos-delay="400">
-                <div class="w-16 h-16 mx-auto bg-white dark:bg-dark-DEFAULT rounded-lg flex items-center justify-center shadow-md mb-2">
+                <div class="w-16 h-16 mx-auto rounded-lg flex items-center justify-center shadow-md mb-2 skill-icon-bg">
                    <i class="fas fa-database text-3xl text-indigo-400"></i>
                 </div>
                 <span>SQL</span>
               </div>
               <div class="skill-icon text-center" data-aos="zoom-in" data-aos-delay="500">
-                <div class="w-16 h-16 mx-auto bg-white dark:bg-dark-DEFAULT rounded-lg flex items-center justify-center shadow-md mb-2">
+                <div class="w-16 h-16 mx-auto rounded-lg flex items-center justify-center shadow-md mb-2 skill-icon-bg">
                   <i class="devicon-firebase-plain text-3xl text-yellow-500"></i>
                 </div>
                 <span>Firebase</span>
               </div>
               <div class="skill-icon text-center" data-aos="zoom-in" data-aos-delay="600">
-                <div class="w-16 h-16 mx-auto bg-white dark:bg-dark-DEFAULT rounded-lg flex items-center justify-center shadow-md mb-2">
+                <div class="w-16 h-16 mx-auto rounded-lg flex items-center justify-center shadow-md mb-2 skill-icon-bg">
                   <i class="devicon-nodejs-plain text-3xl text-green-500"></i>
                 </div>
                 <span>Node.js</span>
               </div>
               <div class="skill-icon text-center" data-aos="zoom-in" data-aos-delay="700">
-                <div class="w-16 h-16 mx-auto bg-white dark:bg-dark-DEFAULT rounded-lg flex items-center justify-center shadow-md mb-2">
+                <div class="w-16 h-16 mx-auto rounded-lg flex items-center justify-center shadow-md mb-2 skill-icon-bg">
                   <i class="devicon-git-plain text-3xl text-orange-600"></i>
                 </div>
                 <span>Git</span>
               </div>
                <div class="skill-icon text-center" data-aos="zoom-in" data-aos-delay="800">
-                <div class="w-16 h-16 mx-auto bg-white dark:bg-dark-DEFAULT rounded-lg flex items-center justify-center shadow-md mb-2">
+                <div class="w-16 h-16 mx-auto rounded-lg flex items-center justify-center shadow-md mb-2 skill-icon-bg">
                   <i class="devicon-figma-plain text-3xl text-pink-500"></i>
                 </div>
                 <span>Figma</span>
               </div>
-              <!-- PHP Skill Added -->
               <div class="skill-icon text-center" data-aos="zoom-in" data-aos-delay="900">
-                <div class="w-16 h-16 mx-auto bg-white dark:bg-dark-DEFAULT rounded-lg flex items-center justify-center shadow-md mb-2">
+                <div class="w-16 h-16 mx-auto rounded-lg flex items-center justify-center shadow-md mb-2 skill-icon-bg">
                   <i class="devicon-php-plain text-3xl text-indigo-500"></i>
                 </div>
                 <span>PHP</span>
               </div>
-              <!-- MySQL Skill Added -->
               <div class="skill-icon text-center" data-aos="zoom-in" data-aos-delay="1000">
-                <div class="w-16 h-16 mx-auto bg-white dark:bg-dark-DEFAULT rounded-lg flex items-center justify-center shadow-md mb-2">
+                <div class="w-16 h-16 mx-auto rounded-lg flex items-center justify-center shadow-md mb-2 skill-icon-bg">
                   <i class="devicon-mysql-plain text-3xl text-blue-500"></i>
                 </div>
                 <span>MySQL</span>
@@ -315,38 +326,38 @@
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <!-- Project 1 -->
-          <div class="project-card bg-white dark:bg-dark-light rounded-xl overflow-hidden shadow-lg" data-aos="fade-up">
+          <div class="project-card rounded-xl overflow-hidden shadow-lg" data-aos="fade-up">
             <div class="p-6">
               <h3 class="text-xl font-bold mb-2">Footstep Tracker App</h3>
-              <p class="text-gray-600 dark:text-gray-300 mb-4 h-24">Developed a mobile app that tracks user steps and distance with real-time updates. Integrated Google Fit and created visual reports using Flutter chart libraries.</p>
+              <p class="text-gray-300 mb-4 h-24">Developed a mobile app that tracks user steps and distance with real-time updates. Integrated Google Fit and created visual reports using Flutter chart libraries.</p>
               <div class="flex flex-wrap gap-2 mb-4">
-                <span class="px-3 py-1 bg-primary/10 text-primary dark:bg-primary/20 rounded-full text-sm">Flutter</span>
-                <span class="px-3 py-1 bg-primary/10 text-primary dark:bg-primary/20 rounded-full text-sm">Dart</span>
-                <span class="px-3 py-1 bg-primary/10 text-primary dark:bg-primary/20 rounded-full text-sm">Google Fit API</span>
+                <span class="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm">Flutter</span>
+                <span class="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm">Dart</span>
+                <span class="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm">Google Fit API</span>
               </div>
             </div>
           </div>
           <!-- Project 2 -->
-          <div class="project-card bg-white dark:bg-dark-light rounded-xl overflow-hidden shadow-lg" data-aos="fade-up" data-aos-delay="100">
+          <div class="project-card rounded-xl overflow-hidden shadow-lg" data-aos="fade-up" data-aos-delay="100">
              <div class="p-6">
               <h3 class="text-xl font-bold mb-2">Shortest Route Finder</h3>
-              <p class="text-gray-600 dark:text-gray-300 mb-4 h-24">Built an algorithmic route finder using Dijkstra's algorithm to calculate optimal paths. Designed an interactive map-like interface with real-time distance computations.</p>
+              <p class="text-gray-300 mb-4 h-24">Built an algorithmic route finder using Dijkstra's algorithm to calculate optimal paths. Designed an interactive map-like interface with real-time distance computations.</p>
               <div class="flex flex-wrap gap-2 mb-4">
-                <span class="px-3 py-1 bg-primary/10 text-primary dark:bg-primary/20 rounded-full text-sm">Flutter</span>
-                <span class="px-3 py-1 bg-primary/10 text-primary dark:bg-primary/20 rounded-full text-sm">Dart</span>
-                 <span class="px-3 py-1 bg-primary/10 text-primary dark:bg-primary/20 rounded-full text-sm">Algorithms</span>
+                <span class="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm">Flutter</span>
+                <span class="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm">Dart</span>
+                 <span class="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm">Algorithms</span>
               </div>
             </div>
           </div>
           <!-- Project 3 -->
-          <div class="project-card bg-white dark:bg-dark-light rounded-xl overflow-hidden shadow-lg" data-aos="fade-up" data-aos-delay="200">
+          <div class="project-card rounded-xl overflow-hidden shadow-lg" data-aos="fade-up" data-aos-delay="200">
             <div class="p-6">
               <h3 class="text-xl font-bold mb-2">AI Medical Chatbot</h3>
-              <p class="text-gray-600 dark:text-gray-300 mb-4 h-24">(Ongoing) Developing an AI-based chatbot using a conversational UI. Plans include voice input/output and GPT integration for reliable medical insights.</p>
+              <p class="text-gray-300 mb-4 h-24">(Ongoing) Developing an AI-based chatbot using a conversational UI. Plans include voice input/output and GPT integration for reliable medical insights.</p>
               <div class="flex flex-wrap gap-2 mb-4">
-                <span class="px-3 py-1 bg-primary/10 text-primary dark:bg-primary/20 rounded-full text-sm">Flutter</span>
-                <span class="px-3 py-1 bg-primary/10 text-primary dark:bg-primary/20 rounded-full text-sm">Dart</span>
-                <span class="px-3 py-1 bg-primary/10 text-primary dark:bg-primary/20 rounded-full text-sm">GPT API</span>
+                <span class="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm">Flutter</span>
+                <span class="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm">Dart</span>
+                <span class="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm">GPT API</span>
               </div>
             </div>
           </div>
@@ -355,35 +366,35 @@
     </section>
 
     <!-- Resume/Experience Section -->
-    <section id="resume" class="py-20 px-4 bg-gray-50 dark:bg-dark-light">
+    <section id="resume" class="py-20 px-4">
       <div class="container mx-auto">
         <h2 class="text-3xl md:text-4xl font-bold mb-16 text-center" data-aos="fade-up">
           Resume & <span class="gradient-text">Experience</span>
         </h2>
-        <div class="max-w-3xl mx-auto">
+        <div class="max-w-3xl mx-auto glass-card p-8 rounded-xl">
           <div class="relative">
             <!-- Timeline Item 1 -->
             <div class="timeline-item relative pl-8 pb-8" data-aos="fade-up">
-              <div class="timeline-dot absolute left-0 top-1 w-4 h-4 bg-primary rounded-full border-4 border-gray-50 dark:border-dark-light"></div>
-              <p class="text-sm text-gray-500 mb-1">Jan 2025 - Present</p>
+              <div class="timeline-dot absolute left-0 top-1 w-4 h-4 bg-primary rounded-full border-4"></div>
+              <p class="text-sm text-gray-400 mb-1">Jan 2025 - Present</p>
               <h3 class="text-xl font-bold">Junior Solutions Architect</h3>
-              <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Morpheus Code</h4>
+              <h4 class="font-semibold text-gray-300 mb-2">Morpheus Code</h4>
               <p>Assisting in designing scalable software solutions, planning system architecture, and supporting API integration for client projects.</p>
             </div>
             <!-- Timeline Item 2 -->
             <div class="timeline-item relative pl-8 pb-8" data-aos="fade-up">
-              <div class="timeline-dot absolute left-0 top-1 w-4 h-4 bg-primary rounded-full border-4 border-gray-50 dark:border-dark-light"></div>
-              <p class="text-sm text-gray-500 mb-1">June 2024 - Jan 2025</p>
+              <div class="timeline-dot absolute left-0 top-1 w-4 h-4 bg-primary rounded-full border-4"></div>
+              <p class="text-sm text-gray-400 mb-1">June 2024 - Jan 2025</p>
               <h3 class="text-xl font-bold">Creative Intern</h3>
-              <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Meshcraft</h4>
+              <h4 class="font-semibold text-gray-300 mb-2">Meshcraft</h4>
               <p>Conceptualized and executed a streamlined content creation workflow for Instagram Reels, reducing turnaround time by 20%.</p>
             </div>
             <!-- Timeline Item 3 -->
             <div class="timeline-item relative pl-8" data-aos="fade-up">
-              <div class="timeline-dot absolute left-0 top-1 w-4 h-4 bg-primary rounded-full border-4 border-gray-50 dark:border-dark-light"></div>
-              <p class="text-sm text-gray-500 mb-1">Jan 2024 - June 2024</p>
+              <div class="timeline-dot absolute left-0 top-1 w-4 h-4 bg-primary rounded-full border-4"></div>
+              <p class="text-sm text-gray-400 mb-1">Jan 2024 - June 2024</p>
               <h3 class="text-xl font-bold">Creative Team</h3>
-              <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Somaiya Space Research Project</h4>
+              <h4 class="font-semibold text-gray-300 mb-2">Somaiya Space Research Project</h4>
               <p>Contributed to creative content and team projects in a dynamic research environment.</p>
             </div>
           </div>
@@ -410,8 +421,8 @@
     </section>
 
     <!-- Footer -->
-    <footer class="bg-gray-50 dark:bg-dark-light py-8 px-4">
-        <div class="container mx-auto text-center text-gray-600 dark:text-gray-400">
+    <footer class="bg-dark-DEFAULT/60 backdrop-blur-md py-8 px-4">
+        <div class="container mx-auto text-center text-gray-400">
             <p>&copy; 2024 Sameer Morya. All rights reserved.</p>
         </div>
     </footer>
@@ -425,15 +436,13 @@
         once: true,
       });
 
-      // Dark Mode Toggle
+      // Dark Mode Toggle (Kept for icon consistency, but site is dark by default)
       function setupDarkMode() {
         const toggleButtons = [document.getElementById('dark-mode-toggle'), document.getElementById('dark-mode-toggle-mobile')];
-        const html = document.documentElement;
-
         toggleButtons.forEach(button => {
-          button.addEventListener('click', () => {
-            html.classList.toggle('dark');
-          });
+          if (button) {
+            // Functionality can be added here if a light mode is ever desired
+          }
         });
       }
       
@@ -444,15 +453,18 @@
         const mobileMenu = document.getElementById('mobile-menu');
         const navLinks = mobileMenu.querySelectorAll('a');
 
-        menuButton.addEventListener('click', () => {
-          mobileMenu.classList.remove('-translate-x-full');
-        });
-
-        closeButton.addEventListener('click', () => {
-          mobileMenu.classList.add('-translate-x-full');
-        });
+        if (menuButton) {
+          menuButton.addEventListener('click', () => {
+            mobileMenu.classList.remove('-translate-x-full');
+          });
+        }
         
-        // Close menu when a link is clicked
+        if (closeButton) {
+          closeButton.addEventListener('click', () => {
+            mobileMenu.classList.add('-translate-x-full');
+          });
+        }
+        
         navLinks.forEach(link => {
             link.addEventListener('click', () => {
                 mobileMenu.classList.add('-translate-x-full');
@@ -467,12 +479,9 @@
         
         window.addEventListener('scroll', function() {
           let current = '';
-          
           sections.forEach(section => {
             const sectionTop = section.offsetTop;
-            const sectionHeight = section.clientHeight;
-            
-            if (scrollY >= (sectionTop - sectionHeight / 3)) {
+            if (scrollY >= (sectionTop - 150)) {
               current = section.getAttribute('id');
             }
           });
@@ -486,11 +495,155 @@
         });
       }
       
-      // Initialize everything on load
+      // ===== THREE.JS SPACE BATTLE SCRIPT =====
+      function setup3dBackground() {
+        if (typeof THREE === 'undefined' || !document.querySelector('#bg-canvas')) {
+            return;
+        }
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+          canvas: document.querySelector('#bg-canvas'),
+          alpha: true
+        });
+        const clock = new THREE.Clock();
+
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.position.setZ(30);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+
+        const ships = [];
+        const lasers = [];
+
+        function createStarfield() {
+            const starGeometry = new THREE.BufferGeometry();
+            const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1, transparent: true, opacity: 0.7 });
+            const starVertices = [];
+            for (let i = 0; i < 10000; i++) {
+                const x = THREE.MathUtils.randFloatSpread(200);
+                const y = THREE.MathUtils.randFloatSpread(200);
+                const z = THREE.MathUtils.randFloatSpread(200);
+                starVertices.push(x, y, z);
+            }
+            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+            const starfield = new THREE.Points(starGeometry, starMaterial);
+            scene.add(starfield);
+        }
+        
+        function createAlienShip() {
+            const group = new THREE.Group();
+            const saucerMaterial = new THREE.MeshStandardMaterial({ color: 0x808080, metalness: 0.9, roughness: 0.2 });
+            const domeMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00, emissive: 0x00ff00, transparent: true, opacity: 0.6 });
+            const saucer = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 0.2, 32), saucerMaterial);
+            const dome = new THREE.Mesh(new THREE.SphereGeometry(0.7, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), domeMaterial);
+            dome.position.y = 0.1;
+            group.add(saucer, dome);
+            return group;
+        }
+
+        function createFriendlyShip() {
+            const material = new THREE.MeshStandardMaterial({ color: 0x6366f1, metalness: 0.5, roughness: 0.5 });
+            const geometry = new THREE.ConeGeometry(0.5, 2, 4);
+            const ship = new THREE.Mesh(geometry, material);
+            ship.rotation.x = Math.PI / 2;
+            return ship;
+        }
+
+        for (let i = 0; i < 15; i++) {
+            const ship = (i % 2 === 0) ? createAlienShip() : createFriendlyShip();
+            const [x, y, z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(50));
+            ship.position.set(x, y, z);
+            ship.userData.type = (i % 2 === 0) ? 'alien' : 'friendly';
+            ship.userData.move = {
+                x: THREE.MathUtils.randFloat(-0.5, 0.5),
+                y: THREE.MathUtils.randFloat(-0.5, 0.5),
+                z: THREE.MathUtils.randFloat(-0.5, 0.5)
+            };
+            ships.push(ship);
+            scene.add(ship);
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+
+            ships.forEach(ship => {
+                ship.position.x += ship.userData.move.x * delta * 5;
+                ship.position.y += ship.userData.move.y * delta * 5;
+                ship.position.z += ship.userData.move.z * delta * 5;
+                if (ship.position.length() > 60) {
+                    ship.position.negate();
+                }
+                if (Math.random() > 0.995) {
+                    fireLaser(ship);
+                }
+            });
+
+            for (let i = lasers.length - 1; i >= 0; i--) {
+                const laser = lasers[i];
+                laser.position.add(laser.userData.velocity);
+                laser.userData.life -= delta;
+                if (laser.userData.life <= 0) {
+                    scene.remove(laser);
+                    lasers.splice(i, 1);
+                }
+            }
+            
+            renderer.render(scene, camera);
+        }
+
+        function fireLaser(ship) {
+            const isAlien = ship.userData.type === 'alien';
+            const laserMaterial = new THREE.MeshBasicMaterial({ color: isAlien ? 0xff0000 : 0x00ffff });
+            const laserGeometry = new THREE.CylinderGeometry(0.05, 0.05, 1.5);
+            const laser = new THREE.Mesh(laserGeometry, laserMaterial);
+            
+            const potentialTargets = ships.filter(s => s.userData.type !== ship.userData.type);
+            if (potentialTargets.length === 0) return;
+            const target = potentialTargets[Math.floor(Math.random() * potentialTargets.length)];
+
+            laser.position.copy(ship.position);
+            laser.lookAt(target.position);
+            
+            const velocity = new THREE.Vector3().subVectors(target.position, ship.position).normalize().multiplyScalar(50);
+            laser.userData.velocity = velocity;
+            laser.userData.life = 2;
+
+            lasers.push(laser);
+            scene.add(laser);
+        }
+        
+        // Function to move camera on scroll
+        function moveCameraOnScroll() {
+            const t = document.body.getBoundingClientRect().top;
+            // The camera will move up and slightly forward as you scroll down
+            camera.position.y = t * 0.05;
+            camera.position.z = 30 + t * 0.01;
+        }
+        document.body.onscroll = moveCameraOnScroll;
+
+        createStarfield();
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+      }
+
       document.addEventListener('DOMContentLoaded', function() {
         setupDarkMode();
         setupMobileMenu();
         handleScrollSpy();
+        setup3dBackground();
       });
     </script>
   </body>
